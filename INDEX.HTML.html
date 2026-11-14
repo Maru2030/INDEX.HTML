@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Occupational Aligned Record System</title>
+<style>
+:root{--navy:#172b4d;--blue:#2457a7;--bg:#f3f6fb;--ink:#1d2939;--muted:#667085;--line:#e4e9f1;--green:#16834a;--red:#c43232}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.5 Arial, sans-serif;color:var(--ink)}
+header{background:var(--navy);color:white;padding:22px max(20px,calc((100% - 1180px)/2));}
+header h1{font-size:22px;margin:0}header p{margin:5px 0 0;color:#d5dfef}
+.shell{max-width:1180px;margin:24px auto;padding:0 18px;display:grid;grid-template-columns:225px 1fr;gap:22px}
+nav,.panel,.stat{background:white;border:1px solid var(--line);border-radius:13px}
+nav{padding:12px;height:max-content}nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:12px;border-radius:8px;color:#344054;font-weight:600;cursor:pointer;margin:3px 0}
+nav button.active,nav button:hover{background:#eaf1fc;color:var(--blue)}
+main{min-width:0}.panel{padding:22px;margin-bottom:18px}.view{display:none}.view.active{display:block}
+h2{margin:0 0 5px;font-size:21px} .sub{color:var(--muted);margin:0 0 20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.stat{padding:18px}.stat small{color:var(--muted)}.stat strong{display:block;font-size:28px;margin-top:5px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+label{display:block;font-weight:600;font-size:13px;margin-bottom:6px}
+input,select{width:100%;padding:11px 12px;border:1px solid #cfd7e3;border-radius:8px;font:inherit;background:white}
+.field{margin-bottom:15px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+.btn{border:0;border-radius:8px;padding:11px 16px;background:var(--blue);color:white;font-weight:700;cursor:pointer}
+.btn.secondary{background:#eaf0f8;color:#233d65}.btn.danger{background:#fff0f0;color:var(--red)}
+.notice{padding:12px;border-radius:8px;background:#f0f6ff;color:#254b7b;margin:12px 0}
+.message{margin-top:12px;font-weight:600}.success{color:var(--green)}.error{color:var(--red)}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);font-size:13px}th{background:#f7f9fc;color:#475467}
+.pill{display:inline-block;padding:3px 8px;border-radius:20px;background:#eaf1fc;color:#2457a7;font-size:12px;font-weight:700}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:15px}
+@media(max-width:760px){.shell{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}nav{display:grid;grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>Occupational Aligned Record System</h1><p>Employee and student records management</p></header>
+<div class="shell">
+<nav aria-label="Main navigation">
+<button class="active" data-view="dashboard">▦ Dashboard</button>
+<button data-view="add">＋ Add New Record</button>
+<button data-view="records">☷ All Records</button>
+<button data-view="search">⌕ Search by ID</button>
+<button data-view="leave">▣ Leave Checker</button>
+<button data-view="backup">⇩ Save & Backup</button>
+</nav>
+<main>
+<section id="dashboard" class="view active">
+<div class="panel"><h2>Dashboard</h2><p class="sub">Overview of records in this browser.</p>
+<div class="stats"><div class="stat"><small>Total records</small><strong id="totalCount">0</strong></div><div class="stat"><small>Employees</small><strong id="employeeCount">0</strong></div><div class="stat"><small>Students</small><strong id="studentCount">0</strong></div></div>
+<div class="notice">Records are saved in this browser on this device. For multiple users or shared access, connect an online database before publishing.</div>
+</div>
+<div class="panel"><h2>Recent records</h2><div id="recentRecords" class="empty">No records have been added yet.</div></div>
+</section>
+
+<section id="add" class="view"><div class="panel">
+<h2>Add New Record</h2><p class="sub">Enter the details below. Fields change depending on the selected role.</p>
+<form id="recordForm">
+<div class="grid">
+<div class="field"><label for="id">Record ID</label><input id="id" type="number" min="1" required></div>
+<div class="field"><label for="name">Full name</label><input id="name" maxlength="49" required></div>
+<div class="field"><label for="age">Age</label><input id="age" type="number" min="1" required></div>
+<div class="field"><label for="role">Role</label><select id="role"><option value="E">Employee</option><option value="S">Student</option></select></div>
+</div>
+<div id="employeeFields" class="grid">
+<div class="field"><label for="department">Department</label><input id="department" maxlength="49"></div>
+<div class="field"><label for="salary">Salary</label><input id="salary" type="number" min="0" step="0.01"></div>
+<div class="field"><label for="leaveBalance">Initial leave balance (days)</label><input id="leaveBalance" type="number" min="0" value="0"></div>
+</div>
+<div id="studentFields" class="field" hidden><label for="course">Course</label><input id="course" maxlength="49"></div>
+<div class="actions"><button class="btn" type="submit">Add Record</button><button class="btn secondary" type="reset">Clear Form</button></div>
+<div id="formMessage" class="message" role="status"></div>
+</form></div></section>
+
+<section id="records" class="view"><div class="panel"><h2>All Records</h2><p class="sub">Every employee and student record currently stored.</p><div id="recordsTable"></div></div></section>
+
+<section id="search" class="view"><div class="panel"><h2>Search Record by ID</h2><p class="sub">Enter a record ID to find a matching employee or student.</p>
+<div class="field"><label for="searchId">Record ID</label><input id="searchId" type="number" min="1" placeholder="Enter ID"></div>
+<button class="btn" id="searchButton">Search</button><div id="searchResult" style="margin-top:16px"></div>
+</div></section>
+
+<section id="leave" class="view"><div class="panel"><h2>Leave Approval Checker</h2><p class="sub">Submit a leave request for an employee. Student records cannot request staff leave.</p>
+<form id="leaveForm">
+<div class="grid">
+<div class="field"><label for="leaveId">Staff ID</label><input id="leaveId" type="number" min="1" required></div>
+<div class="field"><label for="leaveType">Type of leave</label><input id="leaveType" maxlength="29" placeholder="e.g. Annual leave" required></div>
+<div class="field"><label for="startDate">Start date</label><input id="startDate" type="date" required></div>
+<div class="field"><label for="endDate">End date</label><input id="endDate" type="date" required></div>
+<div class="field"><label for="daysRequested">Number of days requested</label><input id="daysRequested" type="number" min="1" required></div>
+</div><button class="btn" type="submit">Check Leave Request</button>
+<div id="leaveResult" class="message" role="status"></div>
+</form></div></section>
+
+<section id="backup" class="view"><div class="panel"><h2>Save & Backup Records</h2><p class="sub">Your records are automatically saved in this browser. Download a backup to keep a separate copy.</p>
+<div class="notice">This replaces the C program's database.txt file workflow. Export a backup before clearing browser data or changing devices.</div>
+<div class="actions"><button class="btn" id="exportButton">Download JSON Backup</button><button class="btn secondary" id="csvButton">Download CSV</button><label class="btn secondary" for="importFile" style="cursor:pointer">Import JSON Backup</label><input id="importFile" type="file" accept="application/json,.json" hidden></div>
+<div id="backupMessage" class="message"></div>
+</div></section>
+</main></div>
+<footer>Occupational Aligned Record System · Browser-based demonstration</footer>
+<script>
+const KEY='occupationalAlignedRecords_v1';
+let records=[];
+try{records=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(records))records=[];}catch{records=[];}
+const $=id=>document.getElementById(id);
+function persist(){localStorage.setItem(KEY,JSON.stringify(records));renderAll();}
+function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function showMessage(id,text,type='success'){$(id).textContent=text;$(id).className='message '+type;}
+function go(view){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===view));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===view));}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
+function roleFields(){const employee=$('role').value==='E';$('employeeFields').hidden=!employee;$('studentFields').hidden=employee;$('department').required=employee;$('salary').required=employee;$('leaveBalance').required=employee;$('course').required=!employee;}
+$('role').addEventListener('change',roleFields);roleFields();
+$('recordForm').addEventListener('submit',e=>{
+ e.preventDefault();const id=Number($('id').value),age=Number($('age').value),role=$('role').value;
+ if(records.some(r=>r.id===id)){showMessage('formMessage','ID already exists. Choose a different ID.','error');return;}
+ if(!Number.isInteger(id)||id<=0||!Number.isInteger(age)||age<=0){showMessage('formMessage','Enter a valid ID and age.','error');return;}
+ const r={id,name:$('name').value.trim(),age,role,leaveBalance:0,leaveType:'-',startDate:'-',endDate:'-'};
+ if(!r.name){showMessage('formMessage','Enter a name.','error');return;}
+ if(role==='E'){r.department=$('department').value.trim();r.salary=Number($('salary').value);r.leaveBalance=Number($('leaveBalance').value);if(!r.department||r.salary<0||r.leaveBalance<0){showMessage('formMessage','Check the employee details.','error');return;}}
+ else{r.course=$('course').value.trim();if(!r.course){showMessage('formMessage','Enter the course.','error');return;}}
+ records.push(r);persist();e.target.reset();roleFields();showMessage('formMessage','Record added successfully.');});
+function recordDetails(r){return `<div class="panel"><p><b>ID:</b> ${r.id}</p><p><b>Name:</b> ${esc(r.name)}</p><p><b>Age:</b> ${r.age}</p><p><b>Role:</b> ${r.role==='E'?'Employee':'Student'}</p>${r.role==='E'?`<p><b>Department:</b> ${esc(r.department)}</p><p><b>Salary:</b> ${Number(r.salary).toFixed(2)}</p><p><b>Leave balance:</b> ${r.leaveBalance} days</p><p><b>Last leave type:</b> ${esc(r.leaveType||'-')}</p><p><b>Start date:</b> ${esc(r.startDate||'-')}</p><p><b>End date:</b> ${esc(r.endDate||'-')}</p>`:`<p><b>Course:</b> ${esc(r.course)}</p>`}</div>`;}
+function tableHTML(list){if(!list.length)return '<div class="empty">No records found.</div>';return `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Role</th><th>Department / Course</th><th>Salary / Leave balance</th></tr></thead><tbody>${list.map(r=>`<tr><td>${r.id}</td><td>${esc(r.name)}</td><td>${r.age}</td><td><span class="pill">${r.role==='E'?'Employee':'Student'}</span></td><td>${esc(r.role==='E'?r.department:r.course)}</td><td>${r.role==='E'?Number(r.salary).toFixed(2)+' / '+r.leaveBalance+' days':'—'}</td></tr>`).join('')}</tbody></table></div>`;}
+function renderAll(){$('totalCount').textContent=records.length;$('employeeCount').textContent=records.filter(r=>r.role==='E').length;$('studentCount').textContent=records.filter(r=>r.role==='S').length;$('recordsTable').innerHTML=tableHTML(records);$('recentRecords').innerHTML=records.length?tableHTML(records.slice(-5).reverse()):'<div class="empty">No records have been added yet.</div>';}
+$('searchButton').addEventListener('click',()=>{const id=Number($('searchId').value);const r=records.find(x=>x.id===id);$('searchResult').innerHTML=r?recordDetails(r):'<p class="error">Record not found. Check the ID and try again.</p>';});
+$('leaveForm').addEventListener('submit',e=>{
+ e.preventDefault();const id=Number($('leaveId').value),r=records.find(x=>x.id===id),days=Number($('daysRequested').value),start=$('startDate').value,end=$('endDate').value;
+ if(!r){showMessage('leaveResult','Staff ID not found.','error');return;}if(r.role!=='E'){showMessage('leaveResult','This record belongs to a student. Staff leave cannot be processed.','error');return;}
+ if(!Number.isInteger(days)||days<=0||!start||!end||end<start){showMessage('leaveResult','Enter valid dates and a positive number of days.','error');return;}
+ r.leaveType=$('leaveType').value.trim();r.startDate=start;r.endDate=end;
+ if(days<=r.leaveBalance){r.leaveBalance-=days;persist();$('leaveResult').innerHTML=`<span class="success">LEAVE STATUS: APPROVED</span><br>Staff: ${esc(r.name)} · Department: ${esc(r.department)}<br>Leave type: ${esc(r.leaveType)} · Days approved: ${days}<br>Remaining leave: ${r.leaveBalance} days`;}
+ else{$('leaveResult').innerHTML=`<span class="error">LEAVE STATUS: REJECTED</span><br>Reason: Insufficient leave balance.<br>Requested: ${days} days · Available: ${r.leaveBalance} days`;}
+});
+function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+$('exportButton').onclick=()=>{download('occupational-records-backup.json',JSON.stringify(records,null,2),'application/json');showMessage('backupMessage','JSON backup downloaded.');};
+$('csvButton').onclick=()=>{const cols=['id','name','age','role','department','salary','leaveBalance','course','leaveType','startDate','endDate'];const csv=[cols.join(','),...records.map(r=>cols.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(','))].join('\n');download('occupational-records.csv',csv,'text/csv');showMessage('backupMessage','CSV file downloaded.');};
+$('importFile').addEventListener('change',async e=>{try{const parsed=JSON.parse(await e.target.files[0].text());if(!Array.isArray(parsed)||parsed.some(r=>!r||!Number.isInteger(Number(r.id))||!['E','S'].includes(r.role)))throw Error();const ids=new Set();for(const r of parsed){r.id=Number(r.id);if(ids.has(r.id))throw Error();ids.add(r.id);}if(!confirm('Replace the records currently stored in this browser with the imported backup?'))return;records=parsed;persist();showMessage('backupMessage','Backup imported successfully.');}catch{showMessage('backupMessage','Could not import this file. Check that it is a valid backup.','error');}finally{e.target.value='';}});
+renderAll();
+</script>
+</body></html>
